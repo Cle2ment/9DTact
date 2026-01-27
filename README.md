@@ -1,6 +1,6 @@
-# 9DTact
+# 9DTact 紧凑型视觉触觉传感器
 
-# Table of contents
+## Upstream Repository README 原始项目介绍
 1. [Overview](#overview)
 2. [Installation](#installation)
 3. [3D Shape Reconstruction](#reconstruction)
@@ -19,7 +19,7 @@
    3. [Simultaneous Shape Reconstruction and Force Estimation (SSAF) in ROS](#shape_force)
 6. [DTact Series Papers](#papers)
 
-## Overview <a name="overview"></a>
+### Overview <a name="overview"></a>
 **This repository contains the code and the hardware source files for the paper:**
 
 ![](source/pipelie.png)
@@ -38,23 +38,23 @@ RAL, 2023 <br>
 
 
 
-## Installation <a name="installation"></a>
-#### Create a conda environment:
+### Installation <a name="installation"></a>
+##### Create a conda environment:
 ```bash
 conda create -n 9dtact python=3.8
 ```
-#### Install pytorch (choose the version that is compatible with your computer):
+##### Install pytorch (choose the version that is compatible with your computer):
 ```bash
 conda activate 9dtact
 conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
 ```
-#### In this repository, install the other requirements:
+##### In this repository, install the other requirements:
 ```bash
 pip install -e .
 ```
 
 
-## 3D Shape Reconstruction <a name="reconstruction"></a>
+### 3D Shape Reconstruction <a name="reconstruction"></a>
 For all the terminals used in this section, they are located in the **shape_reconstruction** directory and based on the **9dtact** conda environment:
 ```bash
 cd shape_reconstruction
@@ -64,7 +64,7 @@ conda activate 9dtact
 If you are using the **production** version of 9DTact, you do **not** need to calibrate the camera and sensor.
 Please proceed directly to Step 3 (Shape Reconstruction).
 
-### 1. Camera Calibration <a name="camera_calibration"></a>
+#### 1. Camera Calibration <a name="camera_calibration"></a>
 Before getting started, **adjust the camera focus** by rotating the lens until objects approximately 15 mm away appear clear.
 
 Then, 3d print the [calibration board](9DTact_Design/fabrication/calibration_board.STL).<br>
@@ -74,7 +74,7 @@ python _1_Camera_Calibration.py
 ```
 Just follow the printed instructions.
 
-### 2. Sensor Calibration <a name="sensor_calibration"></a>
+#### 2. Sensor Calibration <a name="sensor_calibration"></a>
 Firstly, prepare a ball with a radius of 4.0 mm.
 (The radius of the ball depends on the thickness of the sensor surface.
 4.0 mm is just a recommendation.)<br>
@@ -84,46 +84,46 @@ python _2_Sensor_Calibration.py
 ```
 Just follow the printed instructions.
 
-### 3. Shape Reconstruction <a name="shape_reconstruction"></a>
+#### 3. Shape Reconstruction <a name="shape_reconstruction"></a>
 ```bash
 python _3_Shape_Reconstruction.py
 ```
 Press 'y' when the tactile image is stably captured, which will served as the reference image.
 
-## 6D Force Estimation <a name="estimation"></a>
-### 1. BOTA Driver <a name="bota"></a>
+### 6D Force Estimation <a name="estimation"></a>
+#### 1. BOTA Driver <a name="bota"></a>
 **If you want to collect force data with a BOTA MiniONE Pro sensor, you need to:**<br>
 Create a directory named 'bota_ws' as the ROS workspace, and install the [bota driver package](https://gitlab.com/botasys/bota_driver).
 
-### 2. Data Collection <a name="collection"></a>
-#### At the first terminal, open the BOTA sensor:
+##### 2. Data Collection <a name="collection"></a>
+##### At the first terminal, open the BOTA sensor:
 ```bash
 cd ~/xxx/bota_ws # Modify 'xxx' to enter the workspace directory
 source devel/setup.bash
 roslaunch rokubimini_serial rokubimini_serial.launch
 ```
-#### At the second terminal, run:
+##### At the second terminal, run:
 ```bash
 source ~/xxx/bota_ws/devel/setup.bash
 cd data_collection
 conda activate 9dtact
 python collect_data.py
 ```
-#### At the third terminal, open the 9DTact sensor:
+##### At the third terminal, open the 9DTact sensor:
 ```bash
 cd shape-force-ros
 conda activate 9dtact
 python _1_Sensor_ros.py
 ```
 
-### 3. Data Processing <a name="processing"></a>
-#### Open a terminal, normalize the wrench:
+#### 3. Data Processing <a name="processing"></a>
+##### Open a terminal, normalize the wrench:
 ```bash
 cd data_collection
 conda activate 9dtact
 python wrench_normalization.py  # remember to modify the object_num
 ```
-#### At the same terminal, split the data by running:
+##### At the same terminal, split the data by running:
 ```bash
 python split_train_test.py
 ```
@@ -132,7 +132,7 @@ and also:
 python split_train_test(objects).py
 ```
 
-### 4. Model Training <a name="training"></a>
+#### 4. Model Training <a name="training"></a>
 To train the model on the stadard training dataset, run:
 ```bash
 cd force_estimation
@@ -141,7 +141,7 @@ python train.py --model_name="Densenet" --model_layer=169 --optimizer="ADAM" --l
 You may also choose to use [Weights and Bias (wandb)](https://docs.wandb.ai/quickstart) by setting use_wandb as True,
 which helps to track the training performance.
 
-### 5. Force Estimation <a name="inference"></a>
+#### 5. Force Estimation <a name="inference"></a>
 You need to specify a model saved in the 'saved_models' directory as an estimator,
 by modifying the 'weights' parameters in the [force_config.yaml](force_estimation/force_config.yaml).<br>
 After that, run:
@@ -151,54 +151,54 @@ python _1_Force_Estimation.py
 ```
 
 
-## Run in ROS <a name="ros"></a>
-### 1. Shape Reconstruction in ROS <a name="shape_ros"></a>
-#### At the first terminal, open the 9DTact sensor:
+### Run in ROS <a name="ros"></a>
+#### 1. Shape Reconstruction in ROS <a name="shape_ros"></a>
+##### At the first terminal, open the 9DTact sensor:
 ```bash
 cd shape-force_ros
 conda activate 9dtact
 python _1_Sensor_ros.py
 ```
-#### At the second terminal, run:
+##### At the second terminal, run:
 ```bash
 cd shape-force_ros
 conda activate 9dtact
 python _2_Shape_Reconstruction_ros.py
 ```
 
-### 2. Force Estimation in ROS <a name="force_ros"></a>
-#### At the first terminal, open the 9DTact sensor:
+#### 2. Force Estimation in ROS <a name="force_ros"></a>
+##### At the first terminal, open the 9DTact sensor:
 ```bash
 cd shape-force_ros
 conda activate 9dtact
 python _1_Sensor_ros.py
 ```
-#### At the second terminal, run:
+##### At the second terminal, run:
 ```bash
 cd shape-force_ros
 conda activate 9dtact
 python _3_Force_Estimation_ros.py
 ```
-#### (Optional for visualization) At the third terminal, open the visualization window:
+##### (Optional for visualization) At the third terminal, open the visualization window:
 ```bash
 cd force_estimation
 conda activate 9dtact
 python force_visualizer.py
 ```
-### 3. Simultaneous Shape Reconstruction and Force Estimation (SSAF) in ROS <a name="shape_force"></a>
-#### At the first terminal, open the force estimator:
+#### 3. Simultaneous Shape Reconstruction and Force Estimation (SSAF) in ROS <a name="shape_force"></a>
+##### At the first terminal, open the force estimator:
 ```bash
 cd shape-force_ros
 conda activate 9dtact
 python _3_Force_Estimation_ros.py
 ```
-#### At the second terminal, run:
+##### At the second terminal, run:
 ```bash
 cd shape-force_ros
 conda activate 9dtact
 python _4_Shape_Force_ros.py
 ```
-## DTact Series Papers <a name="papers"></a>
+### DTact Series Papers <a name="papers"></a>
 - [DTact: A Vision-Based Tactile Sensor that Measures High-Resolution 3D Geometry Directly from Darkness](https://arxiv.org/abs/2209.13916), Lin et al., ICRA 2023
 - [9DTact: A Compact Vision-Based Tactile Sensor for Accurate 3D Shape Reconstruction and Generalizable 6D Force Estimation](https://arxiv.org/abs/2308.14277), Lin et al., RAL 2023
 - [Design and Evaluation of a Rapid Monolithic Manufacturing Technique for a Novel Vision-Based Tactile Sensor: C-Sight](https://www.mdpi.com/1424-8220/24/14/4603), Fan et al., MDPI Sensors 2024
@@ -211,8 +211,8 @@ python _4_Shape_Force_ros.py
 - [exUMI: Extensible Robot Teaching System with Action-aware Task-agnostic Tactile Representation](https://openreview.net/attachment?id=b86nyIOJWq&name=pdf), Xu et al., CoRL 2025
 - [TacScope: A Miniaturized Vision-Based Tactile Sensor for Surgical Applications](https://advanced.onlinelibrary.wiley.com/doi/10.1002/adrr.202500117), Prince et al., Advanced Robotics Research 2025
 
-## Reference
-```
+### Reference
+```bibtex
 @inproceedings{lin2023dtact,
   title={Dtact: A vision-based tactile sensor that measures high-resolution 3d geometry directly from darkness},
   author={Lin, Changyi and Lin, Ziqi and Wang, Shaoxiong and Xu, Huazhe},
@@ -222,7 +222,7 @@ python _4_Shape_Force_ros.py
   organization={IEEE}
 }
 ```
-```
+```bibtex
 @article{lin20239dtact,
   title={9dtact: A compact vision-based tactile sensor for accurate 3d shape reconstruction and generalizable 6d force estimation},
   author={Lin, Changyi and Zhang, Han and Xu, Jikai and Wu, Lei and Xu, Huazhe},
@@ -235,5 +235,9 @@ python _4_Shape_Force_ros.py
 }
 ```
 
+## LICNESE
+- 软件部分：GNU AFFERO GENERAL PUBLIC LICENSE Version 3
+- 硬件设计：CERN Open Hardware Licence Version 2 - Strongly Reciprocal
 
-
+## 作者
+© Clément, Sphinx, 2026.
